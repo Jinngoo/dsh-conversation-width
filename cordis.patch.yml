@@ -1,0 +1,8 @@
+# Bundle patch: one row over the web profile.
+# The row name resolves from the profile's own node_modules, where
+# `plugin_manager install_bundle` / `dsh plugin --profile web add <path>`
+# installed this package. The Host half is a no-op; the feature lives in the
+# Client half (./client.js) declared by package.json `dsh.client`.
+- insert:
+    - id: conversation-width
+      name: '@jinngoo/dsh-conversation-width'
