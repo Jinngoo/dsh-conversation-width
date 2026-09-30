@@ -1,15 +1,11 @@
 /**
- * Host half of the conversation-width bundle.
+ * conversation-width bundle 的 Host 半边。
  *
- * The whole feature lives in the Client half (`./client.js`, declared by
- * `dsh.client` in package.json): it owns one persisted width preference and
- * publishes it as the Harness' own `--dsh-chat-content-width` axis, plus one
- * composer-dock entry that edits it.
+ * 功能全在 Client 半边（`./client.js`，由 package.json 的 `dsh.client` 声明）：它持有
+ * 一份宽度偏好，投影到 Harness 自己的 `--dsh-chat-content-width` 轴，并在输入框下方
+ * 提供一个编辑该偏好的条目。
  *
- * This Host row exists so the bundle has a mounted Loader entry whose Client
- * half the Web shell loads; it registers no Service, Event or Tool, so no
- * profile state depends on it.
- *
- * @returns {void}
+ * 这一行只为让 bundle 有一个已挂载的 Loader 条目、从而让 Web 外壳加载它的 Client
+ * 半边；它不注册任何 Service、Event 或 Tool。
  */
 export function apply() {}

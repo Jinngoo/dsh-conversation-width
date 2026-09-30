@@ -1,43 +1,14 @@
 /**
- * Client half of @jinngoo/dsh-conversation-width.
+ * @jinngoo/dsh-conversation-width 的 Client 半边。
  *
- * Mechanism
- * ---------
- * The Harness centers the transcript, the composer card, takeover cards and
- * the question / approval / plan panels on ONE axis: the custom property
- * `--dsh-chat-content-width`. The Conversation body element declares it
- * (ui-conversation `skeleton/ConversationRoot.module.css`, rule `.body`) as
+ * 宽度轴 `--dsh-chat-content-width` 由会话主体元素自己声明（ui-conversation 的 `.body`，
+ * 即带 `[data-conversation-content]` 的那个元素），所以从 `:root`/`body` 设值无效。
+ * 本插件改用更高优先级的样式表规则覆盖（0-1-1 > 0-1-0），不需要 `!important`，
+ * 也不向组件外写 DOM。值取 `min(<px>, 100%)`：该变量被正文列、输入卡片、用户气泡、
+ * ≥4 列表格破列多处消费，各自解析自己的 100%，超大值只会退化成「铺满」而不会撑破任何一处。
  *
- *   --dsh-chat-content-width: var(--dsh-chat-user-width,
- *                               clamp(680px, column * 0.64, 920px))
- *
- * That declaration lives on the element that also carries the stable
- * `data-conversation-content` attribute, and it is that element's OWN
- * declaration — an inherited value from `:root` or `body` can never override
- * it. The two supported overrides are therefore:
- *
- *   1. an inline `--dsh-chat-content-width` on that element, or
- *   2. a stylesheet declaration on that element with higher specificity.
- *
- * This plugin uses (2): `html [data-conversation-content]` is 0-1-1 against the
- * host's `.body` at 0-1-0, so it wins on specificity alone. No `!important`, no
- * DOM writing outside this component, and the host's own inline
- * `--dsh-chat-user-width` (which it writes on the body's PARENT while dragging)
- * is left untouched.
- *
- * Why the value is `min(<px>, 100%)`: the property is consumed in several
- * contexts (the transcript column, the composer card capped at
- * `content + 32px`, the user bubble at `content * 0.702`, the ≥4-column table
- * breakout), and each resolves `100%` against its own containing block. A
- * pinned width larger than the available room therefore degrades to "fill the
- * room" instead of overflowing any of them. The transcript column itself
- * already carries `width: 100%`, so an oversized pin is visually identical to
- * "fill".
- *
- * The rule exists only while the preference is pinned; auto mode removes it and
- * the Harness default — including its hover-revealed drag handles — returns.
- * Those handles are hidden while pinned, because they would otherwise look
- * draggable while writing `--dsh-chat-user-width`, which this rule overrides.
+ * 规则只在固定模式存在；自动模式移除规则，恢复 Harness 默认宽度与内置拖拽手柄。
+ * 固定模式下隐藏手柄，因为它们写的行内 `--dsh-chat-user-width` 已被覆盖，拖了没有反应。
  */
 window.__ModuleLoader__.load({
   id: '@jinngoo/dsh-conversation-width',
@@ -45,19 +16,20 @@ window.__ModuleLoader__.load({
     const React = require('react')
     const h = React.createElement
 
-    /** Locale namespace owned by this plugin. */
+    /** 本插件占用的语言命名空间。 */
     const NS = 'dsh-conversation-width'
-    /** Dock entry key: a fresh id adds a cell beside the shipped ones. */
+    /** 槽位内的登记 id：新 id 与宿主条目并列，复用宿主 id 会顶掉它。 */
     const DOCK_ID = 'conversation-width'
-    /** Slot: ambient entries below the composer card. */
+    /** 槽位：输入框卡片下方的环境条目。 */
     const DOCK_SLOT = 'conversation.composer.dock'
-    /** Persisted preference (per browser profile, like the Harness' own width key). */
+    /** 持久化偏好（按浏览器 profile，与 Harness 自己的宽度键同级）。 */
     const ENABLED_KEY = 'dsh.conversationWidth.enabled'
     const VALUE_KEY = 'dsh.conversationWidth.value'
-    /** Slider domain; values above the available room simply fill it. */
+    /** 滑杆域与步长；超过可用宽度的值等同于铺满。 */
     const MIN = 720
     const MAX = 2400
     const STEP = 20
+    /** 默认的固定宽度。 */
     const DEFAULT_VALUE = 1600
 
     const DICTS = {
@@ -79,7 +51,7 @@ window.__ModuleLoader__.load({
       },
     }
 
-    /** Component chrome; only theme-token references, so a rename degrades looks, not rendering. */
+    /** 组件外观：只引用主题 token，token 改名只会掉样式，不会崩渲染。 */
     const CHROME_CSS = [
       '.cw-dock{display:flex;align-items:center;gap:8px;flex:0 1 auto;min-width:0;height:22px;',
       'padding:0 10px;border-radius:6px;background:var(--dsw-alias-bg-layer-2);',
@@ -96,13 +68,13 @@ window.__ModuleLoader__.load({
       '.cw-mode:hover{background:var(--dsw-alias-bg-layer-1);color:var(--dsw-alias-label-primary)}',
     ].join('')
 
-    /** Snap a requested width onto the slider domain. */
+    /** 把请求宽度吸附到滑杆域上。 */
     function clampWidth(value) {
       if (!Number.isFinite(value)) return DEFAULT_VALUE
       return Math.min(MAX, Math.max(MIN, Math.round(value / STEP) * STEP))
     }
 
-    /** Read the persisted preference; the default is pinned at DEFAULT_VALUE. */
+    /** 读取持久化偏好；缺省即固定为 DEFAULT_VALUE。 */
     function readPreference() {
       try {
         const enabled = window.localStorage.getItem(ENABLED_KEY) !== '0'
@@ -114,15 +86,15 @@ window.__ModuleLoader__.load({
       }
     }
 
-    /** Persist best-effort: a blocked storage must not break the live control. */
+    /** 尽力持久化；存储被禁用也不能影响实时控件。 */
     function writePreference(state) {
       try {
         window.localStorage.setItem(ENABLED_KEY, state.enabled ? '1' : '0')
         window.localStorage.setItem(VALUE_KEY, String(state.value))
-      } catch { /* storage unavailable (private mode): keep the in-memory state */ }
+      } catch { /* 存储不可用（隐私模式）：只保留内存状态 */ }
     }
 
-    /** One preference shared by every mounted dock: the slot is resident, not a singleton guarantee. */
+    /** 一份偏好供所有挂载实例共享（槽位是常驻的，但不保证单例）。 */
     function createStore() {
       let state = readPreference()
       const listeners = new Set()
@@ -142,11 +114,7 @@ window.__ModuleLoader__.load({
       }
     }
 
-    /**
-     * The document-wide axis rule, or nothing in auto mode.
-     * @param {{enabled: boolean, value: number}} state - current preference.
-     * @returns {string} CSS text for the plugin's style element.
-     */
+    /** 生成全局宽度轴规则；自动模式返回空串。 */
     function axisCss(state) {
       if (!state.enabled) return ''
       return 'html [data-conversation-content]{--dsh-chat-content-width:min('
@@ -155,14 +123,9 @@ window.__ModuleLoader__.load({
     }
 
     /**
-     * The composer-dock control: a width slider and one mode toggle.
-     *
-     * Both stay interactive in auto mode on purpose — dragging the slider pins a
-     * width, and the mode button returns to the pinned width — so the control can
-     * always leave the state it is in.
-     *
-     * @param {{store: object, t: (key: string) => string}} props - owner-supplied store and translate.
-     * @returns {object} the dock row, with the axis style it owns.
+     * 输入框卡片下方的控件：一根宽度滑杆 + 一个模式开关。
+     * props 由本插件 activation 提供：store（共享偏好）与 t（翻译）。
+     * 两种模式都可操作（拖滑杆即固定，点开关即切换），保证任何状态都能走出去。
      */
     function WidthDock(props) {
       const { store, t } = props
@@ -211,7 +174,7 @@ window.__ModuleLoader__.load({
           return () => { disposeZh(); disposeEn() }
         }, 'conversation-width: dictionaries')
 
-        /** Registered component: the store and translate are owned by this activation. */
+        /** 注册进槽位的组件：store 与翻译由本次 activation 持有。 */
         function Dock() {
           return h(WidthDock, { store, t })
         }
