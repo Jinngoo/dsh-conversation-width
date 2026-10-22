@@ -74,3 +74,41 @@ html [data-width-handle]{display:none}
 - 刷新页面后，输入框下方出现该行控件；拖动滑杆时正文列与输入卡片同步变宽。
 - 点 `自动` 后宽度回到内置默认，正文两侧手柄可拖。
 - 浅色/深色主题下都读得清（只用 `--dsw-alias-*` 主题 token）。
+
+## 变更记录
+
+### 0.1.1
+
+- **新增** `engines.dsh: "^0.2.0-rc.1"`（`package.json`）。
+  - 原因：DSH 0.2.1-alpha.3 起，安装与 profile 启动的插件兼容性判定改为「声明了
+    `engines.dsh` 就由该范围单独决定，忽略 `@deepseek-ai/dsh*` peer」（`packages/boot/app-boot/src/plugin-compatibility.ts:57-61`；
+    准入调用在 `packages/boot/app-boot/src/compatibility-preflight.ts:105`，安装在
+    `packages/boot/plugin-manager/src/operations.ts:345`）。0.1.0 的 `engines` 只有 `node`、也没有
+    DSH peer，因此任何 DSH 版本（包括将来的 0.3）都会被静默加载。
+  - 范围按含预发布版本的判定：`semver.satisfies(v, range, { includePrerelease: true })`
+    （`packages/boot/app-boot/src/plugin-compatibility.ts:51-53`），所以
+    `^0.2.0-rc.1` = `>=0.2.0-rc.1 <0.3.0-0`：覆盖 `0.2.1-rc.2`，排除 `0.3.0-rc.1` 及以后。
+  - 已用真实门禁函数核对（运行时 `0.2.1-rc.2`）：
+    `evaluatePluginCompatibility(<本包 manifest>, {}, "0.2.1-rc.2")` → `undefined`（满足）；
+    传 `"0.3.0"` → `requirements: { "engines.dsh": "^0.2.0-rc.1" }`（拒绝）。
+- **未改** `client.js` / `index.js`：0.2.1-rc.2 下逐项核对 Client 契约仍全部成立，不改代码。
+  - 模块装载：`window.__ModuleLoader__.load({ id, factory })` 与 `dsh.client`
+    （`platform` / `immediately` / `inject`）仍是当前协议（`packages/client/modules/src/client/manifest.ts:356-368,173-193`；
+    `packages/client/modules/src/index.ts:858-875` 校验声明并要求 `./client` 导出），与官方插件模板
+    `packages/preset/agent-preset/skills/cordis-plugin-development/templates/decoration/` 一致。
+  - 槽位：`conversation.composer.dock` 仍是 list 槽（`packages/client/ui-conversation/src/client/contract/slots.ts:274`，
+    声明于 `src/client/apply.ts:460`），选项 `id`/`order`/`label`/`priority` 全兼容
+    （`packages/client/ui-slots/src/index.ts:778-784`）；本包用独立 id，不与宿主条目争用同一 cell，无需 `priority`。
+  - 宽度轴与优先级：`.body` 仍以 0-1-0 声明 `--dsh-chat-content-width`
+    （`src/client/skeleton/ConversationRoot.module.css:374,384-387`），声明元素同时带
+    `data-conversation-content`（`src/client/skeleton/ConversationContent.tsx:190-197`）；本包
+    `html [data-conversation-content]` 为 0-1-1，仍压过它；`[data-width-handle]`
+    （`src/client/skeleton/ConversationWidthControls.tsx:120`）与宿主行内写的
+    `--dsh-chat-user-width`（同文件 `:142-143`，写在 body 的父元素上）语义未变。
+  - 主题 token：`--dsw-alias-bg-layer-2`、`--dsw-alias-label-secondary`
+    （`packages/client/ui-theme/src/styles/design-platform.css:172,223,290,341`）、
+    `--dsh-content-font-size-secondary`（`packages/client/ui-theme/src/styles/gradient-shadow-text.css:58`）均仍在。
+  - 已知范围限制（非本次升级引入）：选择器匹配所有 `[data-conversation-content]`，因此内嵌 occurrence
+    （如子代理侧栏聊天，`packages/client/ui-subagent/src/client/sidebar-chat/index.tsx:145` 的
+    `variant: 'embedded'`）也会被固定宽度覆盖，而不是保留其 `min(100% - 32px, 920px)`
+    （`ConversationRoot.module.css:393-399`）。主会话之外的显示如需严格隔离，需要宿主提供区分主/内嵌的属性。
