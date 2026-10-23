@@ -5,11 +5,11 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://gitee.com/jinngoo/dsh-conversation-width.git"
+    "url": "git+https://github.com/Jinngoo/dsh-conversation-width.git"
   },
-  "homepage": "https://gitee.com/jinngoo/dsh-conversation-width#readme",
+  "homepage": "https://github.com/Jinngoo/dsh-conversation-width#readme",
   "bugs": {
-    "url": "https://gitee.com/jinngoo/dsh-conversation-width/issues"
+    "url": "https://github.com/Jinngoo/dsh-conversation-width/issues"
   },
   "publishConfig": {
     "access": "public"
