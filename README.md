@@ -3,6 +3,10 @@
 DSH Web UI 插件：**把会话内容列加宽，并在输入框下方给出一个宽度滑杆**。
 Widens the Harness Web conversation content column and adds a width slider under the composer.
 
+![输入框下方的宽度控件：双向箭头图标 + 滑杆 + 当前宽度 1080px](docs/dock-width.png)
+
+> 截图：暗色主题，dock 里的 `⇔ [滑杆] 1080px` 固定宽度状态（右侧是 Harness 自带的上下文计量）。
+
 ## 它做什么
 
 - 把 Harness 自己的宽度轴 `--dsh-chat-content-width` 固定为滑杆值（默认 `1600px`），
