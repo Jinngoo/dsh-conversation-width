@@ -8,8 +8,11 @@ Widens the Harness Web conversation content column and adds a width slider under
 - 把 Harness 自己的宽度轴 `--dsh-chat-content-width` 固定为滑杆值（默认 `1600px`），
   正文列、输入框卡片、问题/审批/计划卡片一起变宽。
 - 在输入框下方（`conversation.composer.dock`，即「Ambient entries below the composer card」）
-  放一行控件：`内容宽度 [滑杆] ⟨模式按钮⟩`。
-- 模式按钮显示当前状态：固定时显示 `1600px`（`aria-pressed=true`），自动时显示 `自动`。
+  放一个扁平控件：`⇔ [滑杆] ⟨1600px / 自动⟩`（14px 图标 + 滑杆 + 当前值/模式）。
+- 外观对齐宿主自己的 dock 条目规范（`ui-chat` 的耗时/用量胶囊、`ui-conversation` 的上下文计量）：
+  透明底、`label-tertiary`、悬停才出 `interactive-bg-hover`、`--dsw-radius-sm`、
+  `--dsh-content-font-size-secondary` 字号、等宽数字。控件名与操作说明放在滑杆的 `title` / 按钮的 `aria-label` 里。
+- 模式按钮显示当前状态：固定时显示 `1600px`（`aria-pressed=true`，`label-primary`），自动时显示 `自动`。
   拖动滑杆 = 固定为该宽度；点模式按钮 = 两种模式互切。两种模式下控件都可操作，
   不存在「卡在某一态出不来」。
 - `自动` 即回到 Harness 内置行为（默认 `clamp(680px, 列宽×0.64, 920px)`，正文两侧的拖拽手柄重新可用）。
@@ -76,6 +79,18 @@ html [data-width-handle]{display:none}
 - 浅色/深色主题下都读得清（只用 `--dsw-alias-*` 主题 token）。
 
 ## 变更记录
+
+### 0.1.2
+
+- **外观改为与宿主 dock 条目同一套规范**（`ui-chat` 的 `StatsPills.module.css` / `ui-conversation` 的
+  `ContextMeter.module.css`）：透明底、`--dsw-alias-label-tertiary` 文字、悬停才出
+  `--dsw-alias-interactive-bg-hover`、`--dsw-radius-sm` 圆角、`--dsh-content-font-size-secondary` 字号、
+  行高 `calc(20px + --dsh-content-font-delta-secondary)`、`tabular-nums`。
+- **控件结构收敛为「图标 + 当前值」**：新增 14px 前置图标（⇔），去掉可见的「内容宽度」文字，
+  完整名称与操作说明放在滑杆 `title` 与模式按钮 `aria-label`；模式按钮由"描边小胶囊"改为扁平文本按钮。
+- **未改**：宽度轴规则、`localStorage` 键、滑杆域/步长、自动模式恢复内置行为。
+- 原因：dock 里同时有宿主的两条扁平读数（耗时、用量）与上下文计量，
+  两个插件原先的"填充胶囊"在其中显得突兀；统一到宿主规范后整行视觉同质。
 
 ### 0.1.1
 

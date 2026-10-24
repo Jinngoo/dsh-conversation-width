@@ -51,21 +51,27 @@ window.__ModuleLoader__.load({
       },
     }
 
-    /** 组件外观：只引用主题 token，token 改名只会掉样式，不会崩渲染。 */
+    /**
+     * 组件外观：对齐宿主的 dock 条目规范（ui-chat StatsPills / ui-conversation ContextMeter）——
+     * 扁平透明底、label-tertiary、hover 才出 interactive-bg-hover、--dsw-radius-sm、
+     * secondary 字号、tabular-nums。只引用主题 token，token 改名只会掉样式，不会崩渲染。
+     */
     const CHROME_CSS = [
-      '.cw-dock{display:flex;align-items:center;gap:8px;flex:0 1 auto;min-width:0;height:22px;',
-      'padding:0 10px;border-radius:6px;background:var(--dsw-alias-bg-layer-2);',
-      'color:var(--dsw-alias-label-secondary);font-size:var(--dsh-content-font-size-secondary,13px);',
-      'line-height:22px;white-space:nowrap}',
-      '.cw-label{flex:none}',
+      '.cw-dock{display:inline-flex;align-items:center;gap:6px;flex:0 1 auto;min-width:0;',
+      'padding:1px 8px;border-radius:var(--dsw-radius-sm);background:transparent;',
+      'color:var(--dsw-alias-label-tertiary);font-size:var(--dsh-content-font-size-secondary,13px);',
+      'line-height:calc(20px + var(--dsh-content-font-delta-secondary,0px));',
+      'font-variant-numeric:tabular-nums;white-space:nowrap}',
+      '.cw-icon{flex:none}',
       '.cw-range{flex:0 1 auto;width:112px;min-width:56px;height:16px;margin:0;background:transparent;',
       'accent-color:var(--dsw-alias-brand-primary);cursor:pointer}',
       '.cw-dock[data-dsh-conversation-width="auto"] .cw-range{accent-color:var(--dsw-alias-state-idle-primary);opacity:.6}',
-      '.cw-mode{flex:none;min-width:52px;height:18px;padding:0 7px;border:0.5px solid var(--dsw-alias-border-l2);',
-      'border-radius:999px;background:transparent;color:var(--dsw-alias-label-secondary);',
-      'font:inherit;font-size:12px;line-height:16px;font-variant-numeric:tabular-nums;cursor:pointer}',
-      '.cw-mode[aria-pressed="true"]{border-color:var(--dsw-alias-brand-primary);color:var(--dsw-alias-label-primary)}',
-      '.cw-mode:hover{background:var(--dsw-alias-bg-layer-1);color:var(--dsw-alias-label-primary)}',
+      '.cw-mode{flex:none;padding:0 6px;border:0;border-radius:var(--dsw-radius-sm);background:transparent;',
+      'color:var(--dsw-alias-label-secondary);font:inherit;line-height:inherit;',
+      'font-variant-numeric:tabular-nums;cursor:pointer}',
+      '.cw-mode[aria-pressed="true"]{color:var(--dsw-alias-label-primary)}',
+      '.cw-mode:hover{background:var(--dsw-alias-interactive-bg-hover);color:var(--dsw-alias-label-primary)}',
+      '.cw-mode:focus-visible{outline:2px solid var(--dsw-alias-brand-primary);outline-offset:1px}',
     ].join('')
 
     /** 把请求宽度吸附到滑杆域上。 */
@@ -122,6 +128,17 @@ window.__ModuleLoader__.load({
         + 'html [data-width-handle]{display:none}'
     }
 
+    /** dock 按钮的前置图标：左右双向箭头（内容列加宽）。 */
+    function widthIcon() {
+      return h('svg', {
+        className: 'cw-icon', viewBox: '0 0 18 18', width: 14, height: 14, 'aria-hidden': true,
+      },
+        h('path', {
+          d: 'M2.5 9h13M5.5 5.5 2 9l3.5 3.5M12.5 5.5 16 9l-3.5 3.5', fill: 'none', stroke: 'currentColor',
+          strokeWidth: 1.4, strokeLinecap: 'round', strokeLinejoin: 'round',
+        }))
+    }
+
     /**
      * 输入框卡片下方的控件：一根宽度滑杆 + 一个模式开关。
      * props 由本插件 activation 提供：store（共享偏好）与 t（翻译）。
@@ -137,7 +154,7 @@ window.__ModuleLoader__.load({
         h('style', null, axisCss(state)),
         h('style', null, CHROME_CSS),
         h('div', { className: 'cw-dock', 'data-dsh-conversation-width': mode },
-          h('span', { className: 'cw-label' }, t('label')),
+          widthIcon(),
           h('input', {
             className: 'cw-range',
             type: 'range',
@@ -155,6 +172,7 @@ window.__ModuleLoader__.load({
             className: 'cw-mode',
             type: 'button',
             'aria-pressed': state.enabled,
+            'aria-label': t('label') + '，' + (state.enabled ? state.value + 'px' : t('auto')),
             title: state.enabled ? t('pinnedTooltip') : t('autoTooltip'),
             onClick: () => { store.update({ enabled: !state.enabled }) },
           }, state.enabled ? state.value + 'px' : t('auto')),

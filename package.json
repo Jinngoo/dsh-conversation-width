@@ -1,6 +1,6 @@
 {
   "name": "@jinngoo/dsh-conversation-width",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "DSH Web UI 插件：加宽会话内容列，并在输入框下方给出宽度滑杆（不装也能用内置拖拽手柄）。Widens the Harness Web conversation content column and adds a width slider under the composer.",
   "license": "MIT",
   "repository": {
