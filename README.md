@@ -23,15 +23,32 @@ Widens the Harness Web conversation content column and adds a width slider under
 
 ## 安装
 
-```
-dsh plugin --profile web add D:\Work\GitHub\dsh-conversation-width
+已发布到 npm：
+
+```bash
+dsh plugin --profile <profile> add @jinngoo/dsh-conversation-width
 ```
 
-或在 DSH 会话里用 `plugin_manager`，`action: install_bundle`、`target` 用上面的绝对目录。
-装完刷新页面（新 Client 包需要重新加载 Web 资产）。卸载：
+或在 DSH 会话里用 `plugin_manager`：
 
 ```
-dsh plugin --profile web remove @jinngoo/dsh-conversation-width
+action: install_bundle
+target: @jinngoo/dsh-conversation-width@latest
+```
+
+装完**刷新页面**（新的 Client 包需要重新加载 Web 资产）。卸载：
+
+```bash
+dsh plugin --profile <profile> remove @jinngoo/dsh-conversation-width
+```
+
+### 本地开发安装
+
+克隆后从工作区目录安装（`link:` 安装直接跑工作区的代码，改完刷新页面即可）：
+
+```bash
+git clone git@github.com:Jinngoo/dsh-conversation-width.git
+dsh plugin --profile <profile> add <克隆目录的绝对路径>
 ```
 
 ## 机制（为什么这么写）
